@@ -4,6 +4,8 @@ import z from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
 
 
 const formSchema = insertAccountSchema.pick({
@@ -33,7 +35,7 @@ export const AccountForm = ({
     })
 
     const handleSubmit = ( values : FormValues) =>{
-        console.log({values});
+        onSubmit(values);
     }
 
     const handleDelete = () =>{
@@ -44,7 +46,7 @@ export const AccountForm = ({
         <Form {...form} >
             <form 
             onSubmit={form.handleSubmit(handleSubmit)} 
-            className="space-y-4 pt-4">
+            className="space-y-4 pt-4 pl-4 pr-4">
                 <FormField 
                 name="name"
                 control={form.control}
@@ -62,6 +64,19 @@ export const AccountForm = ({
                     </FormItem>
                 )}
                 />
+                <Button className="w-full" disabled={disabled}>
+                    {id ? "Save Changes" : "Create Account"}
+                </Button>
+                {!!id &&<Button
+                type="button"
+                disabled={disabled}
+                onClick={handleDelete}
+                className="w-full"
+                variant={"outline"}
+                >
+                    <Trash className="size-4 mr-2" />
+                    Delete Account
+                </Button>}
             </form>
         </Form>
     )
