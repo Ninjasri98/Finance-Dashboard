@@ -26,13 +26,14 @@ import {
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Trash } from "lucide-react"
+import { useConfirm } from "@/hooks/use-confirm"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[],
   filterKey: string,
-  onDelete : (rows : Row<TData>[]) => void;
-  disabled? : boolean;
+  onDelete: (rows: Row<TData>[]) => void;
+  disabled?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -42,6 +43,11 @@ export function DataTable<TData, TValue>({
   onDelete,
   disabled
 }: DataTableProps<TData, TValue>) {
+
+  const [ConfirmDialog, confirm] = useConfirm(
+    "Are you sure?",
+    "You want to perform a bulk delete"
+  )
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -68,6 +74,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
+      <ConfirmDialog />
       <div className="flex items-center py-4">
         <Input
           placeholder={`Filter ${filterKey}... `}
@@ -80,14 +87,18 @@ export function DataTable<TData, TValue>({
 
         {table.getFilteredSelectedRowModel().rows.length > 0 && (
           <Button
-          disabled={disabled}
-          size="sm"
-          variant="outline"
-          className="ml-auto font-normal text-xs"
-          onClick={() => {
-            onDelete(table.getFilteredSelectedRowModel().rows);
-            table.resetRowSelection();
-          }}
+            disabled={disabled}
+            size="sm"
+            variant="outline"
+            className="ml-auto font-normal text-xs"
+            onClick={async () => {
+              const ok = await confirm();
+
+              if (ok) {
+                onDelete(table.getFilteredSelectedRowModel().rows);
+                table.resetRowSelection();
+              }
+            }}
           >
             <Trash className="size-4 mr-2" />
             Delete ({table.getFilteredSelectedRowModel().rows.length})
