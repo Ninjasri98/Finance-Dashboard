@@ -15,6 +15,13 @@
       "when": 1751170024321,
       "tag": "0001_regular_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1751546271969,
+      "tag": "0002_youthful_mastermind",
+      "breakpoints": true
     }
   ]
 }
