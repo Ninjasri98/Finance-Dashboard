@@ -2,51 +2,62 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { AccountForm } from "./account-form"
 import { insertAccountSchema } from "@/db/schema";
 import z from "zod/v4";
-import { useCreateAccount } from "../api/use-create-account";
 import { useOpenAccount } from "../hooks/use-open-account";
 import { useGetAccount } from "../api/use-get-account";
+import { Loader2 } from "lucide-react";
+import { useEditAccount } from "../api/use-edit-account";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const formSchema = insertAccountSchema.pick({
-    name : true,
+    name: true,
 });
 
 type FormValues = z.input<typeof formSchema>;
 
-export const EditAccountSheet = () =>{
+export const EditAccountSheet = () => {
 
-    const {isOpen,onClose ,id} = useOpenAccount();
+    const { isOpen, onClose, id } = useOpenAccount();
 
     const accountQuery = useGetAccount(id);
 
-    const mutation = useCreateAccount()
+    const editMutation = useEditAccount(id)
 
-    const onSubmit = (values : FormValues) => {
-        mutation.mutate(values,{
-            onSuccess : () =>{
+    const isPending = editMutation.isPending
+
+    const isLoading = accountQuery.isLoading
+
+    const onSubmit = (values: FormValues) => {
+        editMutation.mutate(values, {
+            onSuccess: () => {
                 onClose();
             }
         })
     };
 
     const defaultValues = accountQuery.data ? {
-        name : accountQuery.data.name
+        name: accountQuery.data.name
     } : {
-        name : ""
+        name: ""
     }
 
-    return(
-        <Sheet open = {isOpen} onOpenChange={onClose}>
+    return (
+        <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent className="space-y-4">
                 <SheetHeader>
                     <SheetTitle>
-                        New Account
+                        Edit Account
                     </SheetTitle>
                     <SheetDescription>
-                        Create a new account to track your transactions.
+                        Edit an existing account
                     </SheetDescription>
                 </SheetHeader>
-                <AccountForm onSubmit={onSubmit} disabled={mutation.isPending} defaultValues={defaultValues} />
+                {isLoading ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="size-4 text-muted-foreground animate-spin" />
+                    </div>
+                ) : (
+                    <AccountForm id={id} onSubmit={onSubmit} disabled={isPending} defaultValues={defaultValues} />
+                )}
             </SheetContent>
         </Sheet>
     )
