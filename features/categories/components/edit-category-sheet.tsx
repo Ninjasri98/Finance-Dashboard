@@ -1,39 +1,39 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { AccountForm } from "./category-form"
-import { insertAccountSchema } from "@/db/schema";
+import { CategoryForm } from "./category-form"
+import { insertCategorySchema } from "@/db/schema";
 import z from "zod/v4";
-import { useOpenAccount } from "../hooks/use-open-category";
-import { useGetAccount } from "../api/use-get-category";
+import { useOpenCategory } from "../hooks/use-open-category";
+import { useGetCategory } from "../api/use-get-category";
 import { Loader2 } from "lucide-react";
-import { useEditAccount } from "../api/use-edit-categories";
-import { useDeleteAccount } from "../api/use-delete-category";
+import { useEditCategory } from "../api/use-edit-categories";
+import { useDeleteCategory } from "../api/use-delete-category";
 import { useConfirm } from "@/hooks/use-confirm";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const formSchema = insertAccountSchema.pick({
+const formSchema = insertCategorySchema.pick({
     name: true,
 });
 
 type FormValues = z.input<typeof formSchema>;
 
-export const EditAccountSheet = () => {
+export const EditCategorySheet = () => {
 
     const [ConfirmDialog, confirm] = useConfirm(
         "Are you sure?",
-        "You are about to delete this account"
+        "You are about to delete this category"
     )
 
-    const { isOpen, onClose, id } = useOpenAccount();
+    const { isOpen, onClose, id } = useOpenCategory();
 
-    const accountQuery = useGetAccount(id);
+    const categoryQuery = useGetCategory(id);
 
-    const editMutation = useEditAccount(id)
+    const editMutation = useEditCategory(id)
 
-    const deleteMutation = useDeleteAccount(id)
+    const deleteMutation = useDeleteCategory(id)
 
     const isPending = editMutation.isPending || deleteMutation.isPending
 
-    const isLoading = accountQuery.isLoading
+    const isLoading = categoryQuery.isLoading
 
     const onSubmit = (values: FormValues) => {
         editMutation.mutate(values, {
@@ -43,8 +43,8 @@ export const EditAccountSheet = () => {
         })
     };
 
-    const defaultValues = accountQuery.data ? {
-        name: accountQuery.data.name
+    const defaultValues = categoryQuery.data ? {
+        name: categoryQuery.data.name
     } : {
         name: ""
     }
@@ -68,10 +68,10 @@ export const EditAccountSheet = () => {
                 <SheetContent className="space-y-4">
                     <SheetHeader>
                         <SheetTitle>
-                            Edit Account
+                            Edit Category
                         </SheetTitle>
                         <SheetDescription>
-                            Edit an existing account
+                            Edit an existing category
                         </SheetDescription>
                     </SheetHeader>
                     {isLoading ? (
@@ -79,7 +79,7 @@ export const EditAccountSheet = () => {
                             <Loader2 className="size-4 text-muted-foreground animate-spin" />
                         </div>
                     ) : (
-                        <AccountForm id={id} onSubmit={onSubmit} disabled={isPending} defaultValues={defaultValues} onDelete={onDelete} />
+                        <CategoryForm id={id} onSubmit={onSubmit} disabled={isPending} defaultValues={defaultValues} onDelete={onDelete} />
                     )}
                 </SheetContent>
             </Sheet>
