@@ -2,7 +2,7 @@ import { db } from "@/db/drizzle";
 import { parse, subDays } from "date-fns"
 import { transactions, insertTransactionSchema, categories, accounts } from "@/db/schema";
 import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
-import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { createId } from "@paralleldrive/cuid2";
@@ -114,9 +114,8 @@ const app = new Hono().get("/",
                 return c.json({ error: "Unauthorized" }, 401);
             }
 
-            const [data] = await db.insert(categories).values({
+            const [data] = await db.insert(transactions).values({
                 id: createId(),
-                userId: auth.userId,
                 ...values
             }).returning()
 
@@ -140,17 +139,25 @@ const app = new Hono().get("/",
                 return c.json({ error: "Unauthorized" }, 401);
             }
 
+            const transactionsToDelete = db.$with("transactions_to_delete").as(
+                db.select({ id: transactions.id }).from(transactions)
+                    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+                    .where(and(
+                        inArray(transactions.id, values.ids),
+                        eq(accounts.userId, auth.userId)
+                    ))
+            )
+
             const data = await db
-                .delete(categories)
+                .with(transactionsToDelete)
+                .delete(transactions)
                 .where(
-                    and(
-                        eq(categories.userId, auth.userId),
-                        inArray(categories.id, values.ids)
-                    )
+                    inArray(transactions.id, sql`(select id from ${transactionsToDelete})`)
                 )
-                .returning({
-                    id: categories.id
-                });
+                .returning(
+                    { id: transactions.id }
+                )
+
 
             return c.json({ data })
         }
@@ -166,8 +173,8 @@ const app = new Hono().get("/",
         ),
         zValidator(
             "json",
-            insertCategorySchema.pick({
-                name: true
+            insertTransactionSchema.omit({
+                id: true
             })
         ),
         async (c) => {
@@ -183,14 +190,21 @@ const app = new Hono().get("/",
                 return c.json({ error: "Unauthorized" }, 401);
             }
 
+            const transactionsToUpdate = db.$with("transactions_to_update").as(
+                db.select({ id: transactions.id }).from(transactions)
+                    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+                    .where(and(
+                        eq(transactions.id, id),
+                        eq(accounts.userId, auth.userId)
+                    ))
+            )
+
             const [data] = await db
-                .update(categories)
+                .with(transactionsToUpdate)
+                .update(transactions)
                 .set(values)
                 .where(
-                    and(
-                        eq(categories.userId, auth.userId),
-                        eq(categories.id, id)
-                    )
+                    inArray(transactions.id, sql`(select id from ${transactionsToUpdate})`)
                 )
                 .returning()
 
@@ -223,17 +237,24 @@ const app = new Hono().get("/",
                 return c.json({ error: "Unauthorized" }, 401);
             }
 
+            const transactionsToDelete = db.$with("transactions_to_delete").as(
+                db.select({ id: transactions.id }).from(transactions)
+                    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+                    .where(and(
+                        eq(transactions.id, id),
+                        eq(accounts.userId, auth.userId)
+                    ))
+            )
+
             const [data] = await db
-                .delete(categories)
+                .with(transactionsToDelete)
+                .delete(transactions)
                 .where(
-                    and(
-                        eq(categories.userId, auth.userId),
-                        eq(categories.id, id)
-                    )
+                    inArray(transactions.id, sql`(select id from ${transactionsToDelete})`)
                 )
-                .returning({
-                    id: categories.id
-                })
+                .returning(
+                    { id: transactions.id }
+                )
 
             if (!data) {
                 return c.json({ error: "Not Found" }, 404)
