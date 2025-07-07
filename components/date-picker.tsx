@@ -1,10 +1,9 @@
 import { Calendar as CalendarIcon } from "lucide-react";
 import {SelectSingleEventHandler } from "react-day-picker";
-import { Popover, PopoverTrigger } from "./ui/popover";
+import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { PopoverContent } from "@radix-ui/react-popover";
 import { Calendar } from "./ui/calendar";
 
 type Props = {
