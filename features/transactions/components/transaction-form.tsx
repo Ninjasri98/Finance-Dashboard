@@ -15,7 +15,7 @@ import { convertAmountToMiliUnits } from "@/lib/utils";
 
 
 const formSchema = z.object({
-    date: z.coerce.date(),
+    date: z.date(),
     accountId: z.string(),
     categoryId: z.string().nullable().optional(),
     payee: z.string(),
@@ -160,6 +160,24 @@ export const TransactionForm = ({
                     )}
                 />
                 <FormField
+                    name="amount"
+                    control={form.control}
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Amount
+                            </FormLabel>
+                            <FormControl>
+                                <AmountInput 
+                                {...field}
+                                placeholder="0.00"
+                                disabled={disabled}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                /> 
+                <FormField
                     name="notes"
                     control={form.control}
                     render={({ field }) => (
@@ -178,24 +196,7 @@ export const TransactionForm = ({
                         </FormItem>
                     )}
                 />
-               <FormField
-                    name="amount"
-                    control={form.control}
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>
-                                Amount
-                            </FormLabel>
-                            <FormControl>
-                                <AmountInput 
-                                {...field}
-                                placeholder="0.00"
-                                disabled={disabled}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                /> 
+               
                 <Button className="w-full" disabled={disabled}>
                     {id ? "Save Changes" : "Create Transaction"}
                 </Button>

@@ -16,10 +16,10 @@ const TransactionsPage = () => {
 
     const newtransaction = useNewTransaction();
     const transactionsQuery = useGetTransactions();
-    const deletetransactions = useBulkDeleteTransactions();
+    const deleteTransactions = useBulkDeleteTransactions();
     const transactions = transactionsQuery.data || [];
 
-    const isDisabled = transactionsQuery.isLoading || deletetransactions.isPending
+    const isDisabled = transactionsQuery.isLoading || deleteTransactions.isPending
 
     if(transactionsQuery.isLoading){
         return(
@@ -54,7 +54,7 @@ const TransactionsPage = () => {
                     <DataTable columns={columns} data={transactions} filterKey='name' onDelete={
                         (row) =>{
                             const ids = row.map((r) => r.original.id);
-                            deletetransactions.mutate({ids})
+                            deleteTransactions.mutate({ids})
                         }
                     } disabled={isDisabled} />
                 </CardContent>
