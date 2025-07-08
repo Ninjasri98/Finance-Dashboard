@@ -23,6 +23,7 @@ const formSchema = z.object({
     notes: z.string().nullable().optional()
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const apiSchema = insertTransactionSchema.omit({
     id: true
 })
