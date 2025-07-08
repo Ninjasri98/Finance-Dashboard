@@ -19,13 +19,24 @@ enum VARIANTS {
 }
 
 const INITIAL_IMPORT_RESULTS = {
-    data : [],
-    errors : [],
-    meta : {}
+    data: [],
+    errors: [],
+    meta: {}
 }
 
 const TransactionsPage = () => {
     const [variant, setVariant] = useState<VARIANTS>(VARIANTS.LIST);
+    const [importResults, setImportResults] = useState(INITIAL_IMPORT_RESULTS);
+
+    const onUpload = (results : typeof INITIAL_IMPORT_RESULTS) => {
+        setImportResults(results);
+        setVariant(VARIANTS.IMPORT)
+    }
+
+    const onCancelImport = () =>{
+        setVariant(VARIANTS.LIST);
+        setImportResults(INITIAL_IMPORT_RESULTS);
+    }
 
     const newtransaction = useNewTransaction();
     const transactionsQuery = useGetTransactions();
@@ -34,12 +45,12 @@ const TransactionsPage = () => {
 
     const isDisabled = transactionsQuery.isLoading || deleteTransactions.isPending
 
-    if(transactionsQuery.isLoading){
-        return(
+    if (transactionsQuery.isLoading) {
+        return (
             <div className='max-w-screen-2xl mx-auto w-full pb-10 -mt-24'>
                 <Card className='border-none drop-shadow-sm'>
                     <CardHeader >
-                        <Skeleton className='h-8 w-48'/>
+                        <Skeleton className='h-8 w-48' />
                     </CardHeader>
                     <CardContent>
                         <div className='h-[500px]  w-full flex items-center justify-center'>
@@ -51,10 +62,10 @@ const TransactionsPage = () => {
         )
     }
 
-    if (variant === VARIANTS.IMPORT){
-        return(
+    if (variant === VARIANTS.IMPORT) {
+        return (
             <>
-            <div>This is a screen for import</div>
+                <div>This is a screen for import</div>
             </>
         )
     }
@@ -66,17 +77,19 @@ const TransactionsPage = () => {
                     <CardTitle className='text-xl line-clamp-1'>
                         Transactions History
                     </CardTitle>
-                    <Button size={"sm"} onClick={newtransaction.onOpen}>
-                        <Plus className='size-4 mr-2' />
-                        Add New
-                    </Button>
-                    <UploadButton onUpload={() => setVariant(VARIANTS.IMPORT)} />
+                    <div className="flex items-center gap-x-2">
+                        <Button size={"sm"} onClick={newtransaction.onOpen}>
+                            <Plus className='size-4 mr-2' />
+                            Add New
+                        </Button>
+                        <UploadButton onUpload={onUpload} />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <DataTable columns={columns} data={transactions} filterKey='payee' onDelete={
-                        (row) =>{
+                        (row) => {
                             const ids = row.map((r) => r.original.id);
-                            deleteTransactions.mutate({ids})
+                            deleteTransactions.mutate({ ids })
                         }
                     } disabled={isDisabled} />
                 </CardContent>
