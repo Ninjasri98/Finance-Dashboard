@@ -7,7 +7,7 @@ type Props = {
     onChange: (columnIndex: number, value: string | null) => void;
 };
 
-const options = ["amount", "payee", "date", "notes"];
+const options = ["amount", "payee", "date"];
 
 export const TableHeadSelect = ({ columnIndex, selectedColumns, onChange }: Props) => {
     const currentSelect = selectedColumns[`column_${columnIndex}`];

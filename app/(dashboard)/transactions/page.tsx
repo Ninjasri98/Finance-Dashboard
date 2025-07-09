@@ -11,6 +11,11 @@ import { useGetTransactions } from '@/features/transactions/api/use-get-transact
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBulkDeleteTransactions } from '@/features/transactions/api/use-bulk-delete-transactions';
 import { UploadButton } from './upload-button';
+import { transactions as transactionsSchema } from "@/db/schema";
+import { useSelectAccount } from '@/features/accounts/hooks/use-select-account';
+import { toast } from 'sonner';
+import { ImportCard } from './import-card';
+import { useBulkCreateTransactions } from '@/features/transactions/api/use-bulk-create-transactions';
 
 
 enum VARIANTS {
@@ -27,16 +32,36 @@ const INITIAL_IMPORT_RESULTS = {
 const TransactionsPage = () => {
     const [variant, setVariant] = useState<VARIANTS>(VARIANTS.LIST);
     const [importResults, setImportResults] = useState(INITIAL_IMPORT_RESULTS);
+    const [AccountDialog, confirm] = useSelectAccount();
+    const bulkCreateTransaction = useBulkCreateTransactions();
 
-    const onUpload = (results : typeof INITIAL_IMPORT_RESULTS) => {
+    const onUpload = (results: typeof INITIAL_IMPORT_RESULTS) => {
         setImportResults(results);
         setVariant(VARIANTS.IMPORT)
     }
 
-    const onCancelImport = () =>{
+    const onCancelImport = () => {
         setVariant(VARIANTS.LIST);
         setImportResults(INITIAL_IMPORT_RESULTS);
     }
+
+    const onSubmitImport = async (
+        values: (typeof transactionsSchema.$inferInsert)[]
+    ) => {
+        const accountId = await confirm() as string;
+        if (!accountId) toast.error("Please select an account to continue!");
+        const data = values.map((transaction) => ({
+            ...transaction,
+            accountId,
+        }));
+        bulkCreateTransaction.mutate(data, {
+            onSuccess: () => {
+                onCancelImport();
+                toast.success("Transactions imported successfully");
+            },
+            onError: () => toast.error("Failed to import transactions"),
+        });
+    };
 
     const newtransaction = useNewTransaction();
     const transactionsQuery = useGetTransactions();
@@ -65,9 +90,14 @@ const TransactionsPage = () => {
     if (variant === VARIANTS.IMPORT) {
         return (
             <>
-                <div>This is a screen for import</div>
+                <AccountDialog />
+                <ImportCard
+                    data={importResults.data}
+                    onCancel={onCancelImport}
+                    onSubmit={onSubmitImport}
+                />
             </>
-        )
+        );
     }
 
     return (

@@ -3,6 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
+import { ImportTable } from "./import-table";
+import { format, parse } from "date-fns";
+import { convertAmountToMiliUnits } from "@/lib/utils";
 
 const dateFormat = "yyyy-MM-dd HH:mm:ss";
 const outputFormat = "yyyy-MM-dd";
@@ -48,6 +51,48 @@ export const ImportCard = ({ onCancel, onSubmit, data }: Props) => {
         });
     };
 
+    const onContinue = () => {
+        const getColumnIndex = (column: string) => {
+            return column.split("_")[1];
+        };
+
+        const mappedData = {
+            headers: headers.map((_header, index) => {
+                const columnIndex = getColumnIndex(`column_${index}`);
+                return selectedColumns[`column_${columnIndex}`] || null;
+            }),
+            body: body
+                .map((row) => {
+                    const transformedRow = row.map((cell, index) => {
+                        const columnIndex = getColumnIndex(`column_${index}`);
+                        return selectedColumns[`column_${columnIndex}`] ? cell : null;
+                    });
+                    return transformedRow.every((cell) => cell === null)
+                        ? []
+                        : transformedRow;
+                })
+                .filter((row) => row.length > 0),
+        };
+
+        const arrayOfData = mappedData.body.map((row) => {
+            return row.reduce((acc: any, curr, index) => {
+                const header = mappedData.headers[index];
+                if (header !== null) {
+                    acc[header] = curr;
+                }
+                return acc;
+            }, {});
+        });
+
+        const formatedData = arrayOfData.map((row) => ({
+            ...row,
+            amount: convertAmountToMiliUnits(parseFloat(row.amount)),
+            date: format(parse(row.date, dateFormat, new Date()), outputFormat),
+        }));
+
+        onSubmit(formatedData);
+    };
+
     return (
         <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
             <Card className="border-none drop-shadow-sm">
@@ -73,7 +118,12 @@ export const ImportCard = ({ onCancel, onSubmit, data }: Props) => {
                     </div>
                 </CardHeader>
                 <CardContent>
-
+                    <ImportTable
+                        headers={headers}
+                        body={body}
+                        selectedColumns={selectedColumns!}
+                        onTableHeadSelectChange={onTableHeadSelectChange}
+                    />
                 </CardContent>
             </Card>
         </div>
