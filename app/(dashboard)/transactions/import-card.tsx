@@ -27,6 +27,27 @@ export const ImportCard = ({ onCancel, onSubmit, data }: Props) => {
         {}
     );
 
+    const onTableHeadSelectChange = (
+        columnIndex: number,
+        value: string | null
+    ) => {
+        setSelectedColumns((prev) => {
+            const newSelectedColumns = { ...prev };
+            for (const key in newSelectedColumns) {
+                if (newSelectedColumns[key] === value) {
+                    newSelectedColumns[key] = null;
+                }
+            }
+
+            if (value === "skip") {
+                value = null;
+            }
+
+            newSelectedColumns[`column_${columnIndex}`] = value;
+            return newSelectedColumns;
+        });
+    };
+
     return (
         <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
             <Card className="border-none drop-shadow-sm">
