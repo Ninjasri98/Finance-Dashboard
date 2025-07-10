@@ -21,3 +21,9 @@ export function formatCurrency(amount : number) {
     minimumFractionDigits: 2
   }).format(amount);
 }
+
+export function calculatePercentage(current: number, previous: number) {
+  if (previous === 0) {
+    return previous === current ? 0 : 100;
+  } else return (100 * (current - previous)) / previous;
+}
