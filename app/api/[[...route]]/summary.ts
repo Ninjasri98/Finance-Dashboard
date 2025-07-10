@@ -7,7 +7,7 @@ import { and, eq, gte, lt, lte, sql, sum, desc } from "drizzle-orm";
 import { Hono } from "hono";
 import z from "zod/v4";
 import { HTTPException } from "hono/http-exception";
-import { calculatePercentage } from "@/lib/utils";
+import { calculatePercentage, fillMissingDays } from "@/lib/utils";
 
 const app = new Hono().get(
     "/",
@@ -119,5 +119,48 @@ const app = new Hono().get(
         if (otherCategories.length > 0) {
             finalCategories.push({ name: "Other", value: otherSum });
         }
+
+        const activeDays = await db
+            .select({
+                date: transactions.date,
+                income:
+                    sql`SUM(CASE WHEN ${transactions.amount} > 0 THEN ${transactions.amount} ELSE 0 END)`.mapWith(
+                        Number
+                    ),
+                expenses:
+                    sql`SUM(CASE WHEN ${transactions.amount} < 0 THEN ABS(${transactions.amount}) ELSE 0 END)`.mapWith(
+                        Number
+                    ),
+            })
+            .from(transactions)
+            .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+            .where(
+                and(
+                    accountId ? eq(accounts.id, accountId) : undefined,
+                    eq(accounts.userId, auth.userId),
+                    // lt(transactions.amount, 0),
+                    gte(transactions.date, startDate),
+                    lte(transactions.date, endDate)
+                )
+            )
+            .groupBy(transactions.date)
+            .orderBy(transactions.date);
+        const days = fillMissingDays(activeDays, startDate, endDate);
+
+         return c.json({
+      data: {
+        remainingAmount: currentPeriod.remaining,
+        remainingChange: remainingChange,
+        incomeAmount: currentPeriod.income,
+        incomeChange: incomeChange,
+        expensesAmount: currentPeriod.expenses,
+        expensesChange: expensesChange,
+        categories: finalCategories,
+        days,
+      },
+    });
     }
+
 );
+
+export default app
