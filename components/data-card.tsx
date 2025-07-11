@@ -1,6 +1,6 @@
 import { IconType } from "react-icons/lib";
 import { VariantProps, cva } from "class-variance-authority";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency, formatPercentage } from "@/lib/utils";
 
 import {
   Card,
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "./ui/skeleton";
+import CountUp from "./count-up";
 const boxVariants = cva("rounded-md p-3", {
   variants: {
     variant: {
@@ -72,7 +73,14 @@ export const DataCard = ({
       </CardHeader>
       <CardContent>
         <h1 className="font-bold text-2xl mb-2 line-clamp-1 break-all">
-          
+          <CountUp
+            start={0}
+            end={value}
+            preserveValue
+            decimals={2}
+            decimalPlaces={2}
+            formattingFn={formatCurrency}
+          />
         </h1>
         <p
           className={cn(
