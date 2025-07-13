@@ -43,10 +43,10 @@ const PieVariant = ({ data }: Props) => {
                   />
                   <div className="space-x-1">
                     <span className="text-sm text-muted-foreground">
-                      {entry?.value}
+                      {entry.value}
                     </span>
                     <span className="text-sm">
-                      {formatPercentage(entry?.payload.percent * 100)}
+                      {formatPercentage(entry.payload.percent * 100)}
                     </span>
                   </div>
                 </li>
